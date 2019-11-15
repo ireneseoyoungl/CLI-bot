@@ -4,6 +4,7 @@ const Spotify = require('node-spotify-api');
 const spotify = new Spotify(keys.spotify);
 const axios = require('axios');
 const moment = require('moment');
+const fs = require('fs');
 moment().format();
 
 try {
@@ -49,6 +50,41 @@ try {
             });
     };
 
+    const callOMDB = (param) => {
+        axios({
+            method: 'get',
+            url: `http://www.omdbapi.com/?apikey=trilogy&t=${param === "" ? "Mr. Nobody" : param}`,
+            responseType: 'json'
+        })
+            .then(function (response) {
+                let data = response.data;
+                let ratings = data.Ratings;
+                let IMDBRating = 'N/A';
+                let RTRating = 'N/A';
+                ratings.forEach(rating => {
+                    switch (rating.Source) {
+                        case 'Internet Movie Database':
+                            IMDBRating = rating.Value;
+                            break;
+                        case 'Rotten Tomatoes':
+                            RTRating = rating.Value;
+                            break;
+                    }
+                });
+                console.log(`* Title: ${data.Title}
+* Year: ${data.Year}
+* IMDB Rating: ${IMDBRating}
+* Rotten Tomatoes Rating of the movie: ${RTRating}
+* Country where the movie was produced: ${data.Country}
+* Language of the movie: ${data.Language}
+* Plot of the movie: ${data.Plot}
+* Actors in the movie: ${data.Actors}`);
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+    };
+
     switch (command) {
         case "spotify-this-song":
             callSpotify(param);
@@ -57,8 +93,14 @@ try {
             callBandInTown(param);
             break;
         case "movie-this":
+            callOMDB(param);
             break;
         case "do-what-it-says":
+            fs.readFile('random.txt', 'utf8', (err, data) => {
+                if (err) throw err;
+                song = data.split(",")[1]
+                callSpotify(song);
+            });
             break;
     };
 }
