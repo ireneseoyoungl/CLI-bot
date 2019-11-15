@@ -34,11 +34,11 @@ try {
             .then(function (response) {
                 let allEvents = response.data;
                 for (let i = 0; i < allEvents.length; i++) {
-                    let venue = allEvents[0].venue.name
-                    let venueLoc = `${allEvents[0].venue.city}, ${allEvents[0].venue.country}`;
-                    let dateRaw = allEvents[0].datetime.slice(0, 10);
+                    let venue = allEvents[i].venue.name
+                    let venueLoc = `${allEvents[i].venue.city}, ${allEvents[i].venue.country}`;
+                    let dateRaw = allEvents[i].datetime.slice(0, 10);
                     //let date = moment(dateRaw, "M/DD/YYYY");
-                    let date = moment(allEvents[0].datetime).format("L").replace(/\//g, "-");
+                    let date = moment(allEvents[i].datetime).format("L").replace(/\//g, "-");
                     console.log(`Event ${i + 1}:
     venue: ${venue}
     location: ${venueLoc}
@@ -85,24 +85,29 @@ try {
             });
     };
 
-    switch (command) {
-        case "spotify-this-song":
-            callSpotify(param);
-            break;
-        case "concert-this":
-            callBandInTown(param);
-            break;
-        case "movie-this":
-            callOMDB(param);
-            break;
-        case "do-what-it-says":
-            fs.readFile('random.txt', 'utf8', (err, data) => {
-                if (err) throw err;
-                song = data.split(",")[1]
-                callSpotify(song);
-            });
-            break;
+    const run = (command, param) => {
+        switch (command) {
+            case "spotify-this-song":
+                callSpotify(param);
+                break;
+            case "concert-this":
+                callBandInTown(param);
+                break;
+            case "movie-this":
+                callOMDB(param);
+                break;
+            case "do-what-it-says":
+                fs.readFile('random.txt', 'utf8', (err, data) => {
+                    if (err) throw err;
+                    command = data.split(",")[0]
+                    song = data.split(",")[1]
+                    run(command, song);
+                });
+                break;
+        }
     };
+
+    run(command, param);
 }
 catch (err) {
     console.log('error', err);
